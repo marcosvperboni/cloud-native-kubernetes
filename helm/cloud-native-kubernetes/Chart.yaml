@@ -1,0 +1,6 @@
+apiVersion: v2
+name: cloud-native-kubernetes
+description: Chart Helm para a plataforma de microsservicos cloud-native-kubernetes (product/inventory/order-service + PostgreSQL + Redis)
+type: application
+version: 0.1.0
+appVersion: "0.0.1"

@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: product-service-config
+  namespace: cloud-native-kubernetes
+data:
+  DB_HOST: "postgres"
+  DB_PORT: "5432"
+  DB_NAME: "productdb"
+  REDIS_HOST: "redis"
+  REDIS_PORT: "6379"

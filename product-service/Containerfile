@@ -1,0 +1,22 @@
+FROM eclipse-temurin:25-jdk-jammy AS build
+WORKDIR /workspace
+COPY pom.xml .
+COPY product-service/pom.xml product-service/pom.xml
+COPY inventory-service/pom.xml inventory-service/pom.xml
+COPY order-service/pom.xml order-service/pom.xml
+COPY .mvn .mvn
+COPY mvnw .
+RUN chmod +x mvnw
+COPY product-service/src product-service/src
+RUN ./mvnw -q -pl product-service -am package -DskipTests
+
+FROM eclipse-temurin:25-jre-jammy
+RUN apt-get update && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
+RUN groupadd -r app && useradd -r -g app app
+WORKDIR /app
+COPY --from=build /workspace/product-service/target/product-service-*.jar app.jar
+USER app
+EXPOSE 8081
+HEALTHCHECK --interval=30s --timeout=3s --start-period=30s CMD curl -fsS http://localhost:8081/actuator/health/liveness || exit 1
+ENTRYPOINT ["java","-jar","app.jar"]
