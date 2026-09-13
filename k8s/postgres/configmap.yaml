@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-init-scripts
+  namespace: cloud-native-kubernetes
+data:
+  init-multiple-databases.sh: |
+    #!/bin/bash
+    set -e
+    for db in productdb inventorydb orderdb; do
+      psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" <<-EOSQL
+        SELECT 'CREATE DATABASE $db' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = '$db')\gexec
+    EOSQL
+    done

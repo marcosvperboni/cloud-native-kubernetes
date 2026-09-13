@@ -1,0 +1,73 @@
+namespace: cloud-native-kubernetes
+
+image:
+  registry: ghcr.io/marcosvperboni/cloud-native-kubernetes
+  tag: latest
+  pullPolicy: IfNotPresent
+
+postgres:
+  image: docker.io/library/postgres:16-alpine
+  storage: 1Gi
+  user: postgres
+  password: postgres
+
+redis:
+  image: docker.io/library/redis:7-alpine
+
+ingress:
+  enabled: true
+  className: nginx
+  host: cloud-native.local
+
+# Um item por microsservico. extraEnv vira variaveis de ambiente adicionais
+# (ex.: URLs de servicos dependentes, host do Redis).
+services:
+  - name: product-service
+    port: 8081
+    dbName: productdb
+    apiPath: products
+    minReplicas: 2
+    maxReplicas: 6
+    resources:
+      requests:
+        cpu: 200m
+        memory: 384Mi
+      limits:
+        cpu: 750m
+        memory: 640Mi
+    extraEnv:
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+
+  - name: inventory-service
+    port: 8082
+    dbName: inventorydb
+    apiPath: inventory
+    minReplicas: 2
+    maxReplicas: 6
+    resources:
+      requests:
+        cpu: 200m
+        memory: 384Mi
+      limits:
+        cpu: 750m
+        memory: 640Mi
+    extraEnv:
+      PRODUCT_SERVICE_URL: http://product-service:8081
+
+  - name: order-service
+    port: 8083
+    dbName: orderdb
+    apiPath: orders
+    minReplicas: 2
+    maxReplicas: 6
+    resources:
+      requests:
+        cpu: 200m
+        memory: 384Mi
+      limits:
+        cpu: 750m
+        memory: 640Mi
+    extraEnv:
+      PRODUCT_SERVICE_URL: http://product-service:8081
+      INVENTORY_SERVICE_URL: http://inventory-service:8082
